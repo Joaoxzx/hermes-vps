@@ -39,6 +39,7 @@ flowchart LR
 | Memória e skills só gravam com aprovação manual | O agente lê texto de fora (vagas, páginas web). Um texto malicioso que ficasse gravado na memória valeria em todas as conversas. A aprovação de skills veio depois de ver o agente salvar uma skill sem passar pela aprovação da memória. |
 | `SOUL.md` com os limites | Ele nunca se candidata, nunca envia mensagem nem paga nada em meu nome, nunca pede senha e nunca inventa experiência em currículo. Exemplo em [`exemplos/SOUL.md`](exemplos/SOUL.md). |
 | `.env` com permissão 600 | Tokens e listas de permitidos só são legíveis pelo próprio usuário. As ferramentas de arquivo do Hermes já bloqueiam escrita nele. |
+| SSH só com chave, sem senha e sem root, com fail2ban | Login por senha e como root é o que os robôs mais tentam em VPS. A regra fica num arquivo próprio em `sshd_config.d`, e o fail2ban bloqueia quem erra várias vezes. |
 | Segredos fora dos comandos | URLs de webhook entram com `read -s` direto num arquivo com permissão 600, sem aparecer na tela nem no histórico. |
 
 ## Monitoramento
@@ -53,6 +54,5 @@ flowchart LR
 
 ## Próximos passos
 
-- SSH: desligar login como root e por senha, usar só chave, e instalar o fail2ban.
 - Limitar onde o agente pode escrever arquivos (`HERMES_WRITE_SAFE_ROOT`), porque hoje ele ainda consegue editar o próprio `config.yaml`.
 - Monitorar o outro projeto (rota `/health`, backup do banco e certificado SSL) quando ele for para produção.
