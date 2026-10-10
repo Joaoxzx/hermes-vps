@@ -1,0 +1,4 @@
+# Segredos e dados locais nunca vão para o GitHub
+.env
+webhook_*
+*.db
