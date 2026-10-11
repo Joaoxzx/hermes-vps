@@ -27,6 +27,8 @@ flowchart LR
     GW -->|login com a conta do ChatGPT| OAI[(Modelo)]
     CR -->|webhook| AV["canais de aviso<br/>no Discord"]
     BV -->|webhook| AV
+    BV -->|"arquivo de entrega<br/>(o agente só lê)"| GW
+    GW -->|"9h: as melhores vagas do dia"| AV
     CR -->|sinal a cada 5 min| HC[Healthchecks.io]
     HC -->|se o sinal parar| AV
 ```
@@ -45,6 +47,7 @@ flowchart LR
 | `.env` com permissão 600 | Tokens e listas de permitidos só são legíveis pelo próprio usuário. As ferramentas de arquivo do Hermes já bloqueiam escrita nele. |
 | SSH só com chave, sem senha e sem root, com fail2ban | Login por senha e como root é o que os robôs mais tentam em VPS. A regra fica num arquivo próprio em `sshd_config.d`, e o fail2ban bloqueia quem erra várias vezes. |
 | Busca de vagas num usuário `vagas` separado | Ela guarda a senha de app do Gmail para ler os alertas do LinkedIn. Se ficasse no usuário do agente, um texto malicioso lido por ele poderia levar a senha embora. Assim o agente não consegue nem listar a pasta. |
+| Triagem diária de vagas com o mínimo de ferramentas | Às 9h uma tarefa agendada do agente lê as vagas do dia, compara com o currículo e manda as melhores no Discord, cada uma com o motivo e o risco. Ela roda só com a ferramenta de arquivos, e o arquivo de vagas fica numa pasta de um grupo em que o agente só tem leitura. A descrição das vagas vem de fora, então o prompt manda ignorar instruções escritas dentro delas. |
 | Segredos fora dos comandos | URLs de webhook entram com `read -s` direto num arquivo com permissão 600, sem aparecer na tela nem no histórico. |
 
 ## Monitoramento
