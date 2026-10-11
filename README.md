@@ -13,7 +13,10 @@ flowchart LR
     subgraph VPS["VPS Ubuntu 24.04"]
         subgraph H["usuário hermes: sem sudo, fora do grupo docker"]
             GW["Hermes gateway<br/>(serviço systemd do usuário)"]
-            CR["cron: check semanal,<br/>busca de vagas, ping"]
+            CR["cron: check semanal, ping"]
+        end
+        subgraph V["usuário vagas: sem sudo"]
+            BV["busca de vagas<br/>(sites + alertas de e-mail)"]
         end
         subgraph A["usuário administrativo"]
             BB["outro projeto<br/>em Docker"]
@@ -23,6 +26,7 @@ flowchart LR
     DC --> GW
     GW -->|login com a conta do ChatGPT| OAI[(Modelo)]
     CR -->|webhook| AV["canais de aviso<br/>no Discord"]
+    BV -->|webhook| AV
     CR -->|sinal a cada 5 min| HC[Healthchecks.io]
     HC -->|se o sinal parar| AV
 ```
@@ -40,6 +44,7 @@ flowchart LR
 | `SOUL.md` com os limites | Ele nunca se candidata, nunca envia mensagem nem paga nada em meu nome, nunca pede senha e nunca inventa experiência em currículo. Exemplo em [`exemplos/SOUL.md`](exemplos/SOUL.md). |
 | `.env` com permissão 600 | Tokens e listas de permitidos só são legíveis pelo próprio usuário. As ferramentas de arquivo do Hermes já bloqueiam escrita nele. |
 | SSH só com chave, sem senha e sem root, com fail2ban | Login por senha e como root é o que os robôs mais tentam em VPS. A regra fica num arquivo próprio em `sshd_config.d`, e o fail2ban bloqueia quem erra várias vezes. |
+| Busca de vagas num usuário `vagas` separado | Ela guarda a senha de app do Gmail para ler os alertas do LinkedIn. Se ficasse no usuário do agente, um texto malicioso lido por ele poderia levar a senha embora. Assim o agente não consegue nem listar a pasta. |
 | Segredos fora dos comandos | URLs de webhook entram com `read -s` direto num arquivo com permissão 600, sem aparecer na tela nem no histórico. |
 
 ## Monitoramento
