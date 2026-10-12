@@ -31,15 +31,28 @@ sequenceDiagram
     H-->>Eu: o que destacou + MEDIA:/caminho do PDF
 ```
 
-A ferramenta tem três ações:
+A ferramenta tem quatro ações:
 
 | Ação | O que faz |
 | --- | --- |
 | `buscar_vaga` | Procura a vaga pelo nome da empresa ou do cargo no arquivo de vagas dos últimos 3 dias, que o [buscador de vagas](https://github.com/Joaoxzx/buscador-de-vagas) grava numa pasta em que o agente só tem leitura. |
 | `opcoes` | Lê o currículo mestre e devolve os dois resumos, os tópicos com ID, as tecnologias e as regras de escolha. |
-| `gerar` | Confere as escolhas, monta o HTML, gera o PDF e devolve o caminho. Tecnologia que não está no mestre, ID que não existe ou experiência sem tópico voltam como erro, e o agente corrige. Se o PDF passar de 1 página, ele é apagado e o agente tira tópicos. |
+| `gerar` | Confere as escolhas, monta o HTML, gera o PDF e devolve o caminho. Tecnologia que não está no mestre, ID que não existe, experiência ou projeto sem tópico voltam como erro, e o agente corrige. Se o PDF passar de 1 página, ele é apagado e o agente tira tópicos. |
+| `propor_mestre` | Guarda uma versão nova do currículo mestre como proposta, sem aplicar. Veja abaixo. |
 
 O Hermes manda o arquivo no Telegram quando a resposta do agente tem uma linha `MEDIA:/caminho/do/arquivo.pdf`. O plugin devolve essa linha pronta.
+
+## Atualizar o currículo mestre pela conversa
+
+Quando conto um projeto novo ou um detalhe do sistema, o agente propõe a mudança no currículo mestre, mas não consegue aplicar. Quem aplica sou eu, com o comando `/mestre` no Telegram:
+
+| Comando | O que faz |
+| --- | --- |
+| `/mestre` | Mostra o que entra (`+`) e o que sai (`-`) do currículo mestre, e um código de 6 caracteres. |
+| `/mestre aplicar <código>` | Aplica a proposta e guarda a versão anterior em `~/curriculos/mestre-backups/`. |
+| `/mestre descartar` | Apaga a proposta. |
+
+A diferença é calculada pelo plugin, não escrita pelo agente, então o que aparece no `/mestre` é exatamente o que vai mudar. O código garante que eu aplico a mesma versão que vi: se o agente trocar a proposta depois, o código muda. Uma proposta fora do formato do mestre nem chega a ser guardada.
 
 ## Decisões de segurança
 
@@ -48,6 +61,7 @@ O Hermes manda o arquivo no Telegram quando a resposta do agente tem uma linha `
 | O agente escolhe IDs; o texto e o visual são fixos | A descrição da vaga vem de fora e pode ter instruções escondidas. Mesmo que o agente seja enganado por ela, o pior resultado é um currículo com fatos verdadeiros numa ordem ruim. Ele não consegue inventar experiência nem colocar HTML no PDF. |
 | Uma ferramenta própria em vez de liberar terminal ou execução de código | O agente continua sem terminal. O plugin faz uma coisa só, com entradas conferidas. |
 | WeasyPrint num processo separado, com o Python do sistema | O processo que gera o PDF não recebe as variáveis de ambiente do gateway (tokens) e recusa qualquer URL no HTML. |
+| Mudança no currículo mestre só com `/mestre aplicar` | O agente lê vagas de fora. Se ele pudesse editar o mestre direto, uma instrução escondida numa vaga poderia colocar uma experiência falsa lá, e ela iria para todos os currículos seguintes. Comandos com `/` só chegam de mensagens minhas, então o agente não consegue aprovar sozinho. |
 | Código do plugin com dono `root` | O usuário do agente lê e executa o plugin, mas não consegue alterar o código. |
 | Ferramenta ligada só no Telegram | É onde peço o currículo. O Discord só recebe avisos. |
 
