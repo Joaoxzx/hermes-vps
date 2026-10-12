@@ -23,6 +23,8 @@ def main():
             for i, e in enumerate(op["experiencias"]):
                 ids = list(e["topicos"])
                 topicos += ids[:7] if i == 0 else ids[:2]
+            for p in op["projetos"]:
+                topicos += list(p["topicos"])[:2]
             resultado = nucleo.gerar({
                 "acao": "gerar", "vaga": "teste", "perfil": sys.argv[2] if len(sys.argv) > 2 else "backend",
                 "topicos": topicos, "linguagens": op["linguagens"], "tecnologias": op["tecnologias"]})
