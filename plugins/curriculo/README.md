@@ -8,7 +8,7 @@ O agente não escreve nenhuma frase do currículo. Ele só escolhe:
 - quais tópicos de cada experiência entram e em que ordem, pelo ID (`e1.3`, `e2.1`...);
 - quais linguagens e tecnologias aparecem e em que ordem.
 
-Todo o texto vem do currículo mestre, um Markdown que fica na VPS, e o visual é um modelo HTML fixo, o mesmo dos currículos que fiz no Word: A4, Calibri 9,5 pt, títulos de seção centralizados com linha embaixo, datas e cidades alinhadas à direita.
+Todo o texto vem do currículo mestre, um Markdown que fica na VPS, e o visual é um modelo HTML fixo, copiado do meu modelo de currículo: Times New Roman 10 pt, margens laterais de 0,5", títulos de seção de 12 pt centralizados com linha embaixo, empresa em negrito com a cidade em itálico, cargo em negrito e itálico e datas alinhadas à direita.
 
 ## Como funciona
 
@@ -61,7 +61,7 @@ A VPS tem 3,8 GB de RAM e já roda o gateway do Hermes e outro projeto em Docker
 | wkhtmltopdf | Sem manutenção há anos e sem suporte a flexbox, que o layout usa. |
 | **WeasyPrint** | Vem no apt (`weasyprint` 61.1), gera o PDF em meio segundo e usa uns 70 MB. |
 
-A fonte é a Carlito (`fonts-crosextra-carlito`), que tem as mesmas medidas da Calibri. Comparei o PDF do WeasyPrint com o que o Chrome gerou com Calibri no Windows: as quebras de linha e o espaçamento ficaram iguais.
+A fonte é a Liberation Serif (`fonts-liberation`), que tem as mesmas medidas da Times New Roman. Medi o modelo linha por linha e recriei o topo dele em HTML: as quebras de linha ficaram iguais e o espaçamento ficou a menos de meio ponto do original.
 
 ## Formato do currículo mestre
 
@@ -93,7 +93,7 @@ Parágrafo do resumo.
 ## Experiência
 ### Empresa | Cidade, UF | mês ano – atual             <- sem cargo: usa o título do perfil
 ### Empresa | Cargo | Cidade, UF | mês ano – mês ano
-- tópico
+- tópico, com **negrito** onde quiser destacar
 Texto solto vira observação para o agente, não entra no PDF.
 
 ## Formação
@@ -110,7 +110,7 @@ Descrição curta.
 Pacotes do sistema, com o usuário administrativo:
 
 ```bash
-sudo apt install -y weasyprint fonts-crosextra-carlito
+sudo apt install -y weasyprint fonts-liberation
 ```
 
 Código do plugin dentro do Hermes, com dono `root`:

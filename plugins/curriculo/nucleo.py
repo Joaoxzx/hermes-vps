@@ -35,21 +35,25 @@ COMO_USAR = [
     "Na resposta: perfil escolhido, o que ficou em destaque, o que a vaga pede e não está no currículo (sem inventar), a linha MEDIA do resultado e o lembrete de revisar antes de enviar.",
 ]
 
+# Medidas tiradas do modelo de currículo do usuário: Times New Roman 10 pt, margens laterais de 0,5",
+# títulos de seção de 12 pt centralizados com linha embaixo, marcador redondo de 4 pt e texto a 0,5".
 CSS = """
-@page { size: A4; margin: 12.7mm 15.2mm; }
+@page { size: A4; margin: 0.26in 0.5in 0.4in; }
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: Calibri, Carlito, sans-serif; font-size: 9.5pt; line-height: 1.22; color: #000; }
-.name { font-size: 20pt; font-weight: bold; text-align: center; margin-bottom: 2pt; }
-.contact { font-size: 9pt; text-align: center; margin-bottom: 6pt; }
-.h { font-size: 11pt; font-weight: bold; text-align: center; border-bottom: 0.75pt solid #000;
-     padding-bottom: 1pt; margin-top: 8pt; margin-bottom: 3pt; }
-.p { margin-bottom: 3pt; }
-.p.tight { margin-bottom: 1pt; }
-.row { display: flex; justify-content: space-between; gap: 12pt; }
+body { font-family: "Times New Roman", "Liberation Serif", Tinos, serif; font-size: 10pt;
+       line-height: 11.52pt; color: #000; }
+.nome { font-size: 26pt; font-weight: bold; text-align: center; line-height: 30pt; }
+.contato { text-align: center; margin-top: 2.5pt; }
+h2 { font-size: 12pt; font-weight: bold; text-align: center; line-height: 13.8pt;
+     border-bottom: 0.75pt solid #000; padding-bottom: 0.25pt; margin: 5.5pt 0 5.2pt; }
+.solto { line-height: 13.2pt; margin-top: -0.84pt; padding-bottom: 0.84pt; }
+.linha { display: flex; justify-content: space-between; gap: 12pt; }
+.cargo { font-weight: bold; font-style: italic; }
+.item + .item { margin-top: 3.1pt; }
 ul { list-style: none; }
-ul + .row { margin-top: 5pt; }
-li { position: relative; padding-left: 0.25in; margin-bottom: 1pt; }
-li::before { content: "•"; position: absolute; left: 0.1in; }
+li { position: relative; padding-left: 0.5in; }
+li::before { content: ""; position: absolute; left: 19pt; top: 3.95pt; width: 4.25pt; height: 4.25pt;
+             border-radius: 50%; background: #000; }
 b { font-weight: bold; } i { font-style: italic; }
 """
 
@@ -64,7 +68,7 @@ def _chave(texto):
 
 
 def _limpar(texto):
-    return texto.replace("**", "").replace("`", "").strip()
+    return texto.replace("`", "").strip()
 
 
 def _sem_parenteses(valor):
@@ -283,17 +287,26 @@ def _slug(texto):
 # ---------- HTML e PDF ----------
 
 def _e(texto):
-    return html.escape(texto, quote=False)
+    """Texto puro, escapado (o ** do Markdown some)."""
+    return html.escape(texto.replace("**", ""), quote=False)
 
 
-def _linha(esquerda, direita, italico=False):
-    tag = "i" if italico else "b"
-    dir_html = f"<i>{_e(direita)}</i>" if italico else _e(direita)
-    return f'<div class="row"><span><{tag}>{_e(esquerda)}</{tag}></span><span>{dir_html}</span></div>'
+def _fmt(texto):
+    """Texto escapado, com **trecho** do mestre virando negrito."""
+    return re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", html.escape(texto, quote=False))
+
+
+def _linha(esquerda_html, direita_html):
+    return f'<div class="linha"><span>{esquerda_html}</span><span>{direita_html}</span></div>'
+
+
+def _titulo_item(nome, detalhe):
+    """'Empresa – Cidade' do modelo: nome em negrito, detalhe em itálico."""
+    return f"<b>{_e(nome)}</b> – <i>{_e(detalhe)}</i>" if detalhe else f"<b>{_e(nome)}</b>"
 
 
 def _lista_html(itens):
-    return "<ul>" + "".join(f"<li>{_e(t)}</li>" for t in itens) + "</ul>"
+    return "<ul>" + "".join(f"<li>{_fmt(t)}</li>" for t in itens) + "</ul>"
 
 
 def montar_html(m, perfil, escolha, linguagens, tecnologias):
@@ -307,36 +320,37 @@ def montar_html(m, perfil, escolha, linguagens, tecnologias):
     p = m["perfis"][perfil]
 
     corpo = [
-        f'<div class="name"><b>{_e(c["nome"])}</b></div>',
-        f'<div class="contact">{_e("  |  ".join(x for x in contato if x))}</div>',
-        '<div class="h"><b>RESUMO</b></div>',
-        f'<div class="p">{_e(" ".join(p["resumo"]))}</div>',
-        '<div class="h"><b>COMPETÊNCIAS TÉCNICAS</b></div>',
-        f'<div class="p tight"><b>Linguagens: </b>{_e(", ".join(linguagens))}</div>',
-        f'<div class="p tight"><b>Tecnologias: </b>{_e(", ".join(tecnologias))}</div>',
+        f'<div class="nome">{_e(c["nome"])}</div>',
+        f'<div class="contato">{_e(" | ".join(x for x in contato if x))}</div>',
+        "<h2>Resumo</h2>",
+        f'<div class="solto"><p>{_fmt(" ".join(p["resumo"]))}</p></div>',
+        "<h2>Formação Acadêmica</h2>",
     ]
-    if idiomas:
-        corpo.append(f'<div class="p tight"><b>Idiomas: </b>{_e(", ".join(idiomas))}</div>')
+    for f in m["formacao"]:
+        corpo.append('<div class="solto">'
+                     + _linha(f"<b>{_e(f['instituicao'].upper())}</b>", f"<i>{_e(f['cidade'] or cidade)}</i>")
+                     + _linha(f"<i>{_e(f['curso'])}</i>", _e(f["datas"])) + "</div>")
 
-    corpo.append('<div class="h"><b>EXPERIÊNCIA</b></div>')
+    competencias = [("Linguagens", linguagens), ("Tecnologias", tecnologias), ("Idiomas", idiomas)]
+    corpo.append("<h2>Competências Técnicas</h2>")
+    corpo.append('<div class="solto">' + "".join(
+        f"<p><b>{rotulo}:</b> {_e(', '.join(itens))}</p>" for rotulo, itens in competencias if itens) + "</div>")
+
+    corpo.append("<h2>Experiência Profissional</h2>")
     for i, e in enumerate(m["experiencias"]):
-        corpo += [_linha(e["empresa"], e["datas"]),
-                  _linha(e["cargo"] or p["titulo"], e["cidade"], italico=True),
-                  _lista_html(escolha["e"][i])]
+        corpo.append('<div class="item">'
+                     + _linha(_titulo_item(e["empresa"], e["cidade"]), _e(e["datas"]))
+                     + f'<div class="cargo">{_e(e["cargo"] or p["titulo"])}</div>'
+                     + _lista_html(escolha["e"][i]) + "</div>")
 
     projetos = [(pr, escolha["p"][i]) for i, pr in enumerate(m["projetos"]) if escolha["p"][i]]
     if projetos:
-        corpo.append('<div class="h"><b>PROJETOS</b></div>')
+        corpo.append("<h2>Projetos</h2>")
         for pr, topicos in projetos:
-            corpo.append(_linha(pr["nome"], pr["datas"]))
-            if pr["descricao"]:
-                corpo.append(f'<div class="p tight"><i>{_e(" ".join(pr["descricao"]))}</i></div>')
-            corpo.append(_lista_html(topicos))
-
-    corpo.append('<div class="h"><b>FORMAÇÃO ACADÊMICA</b></div>')
-    for f in m["formacao"]:
-        corpo += [_linha(f["instituicao"], f["cidade"] or cidade),
-                  _linha(f["curso"], f["datas"], italico=True)]
+            nome, _, detalhe = pr["nome"].partition(": ")
+            descricao = f'<p>{_fmt(" ".join(pr["descricao"]))}</p>' if pr["descricao"] else ""
+            corpo.append('<div class="item">' + _linha(_titulo_item(nome, detalhe), _e(pr["datas"]))
+                         + descricao + _lista_html(topicos) + "</div>")
 
     return ('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">'
             f'<title>{_e(c["nome"])}</title><style>{CSS}</style></head>'
