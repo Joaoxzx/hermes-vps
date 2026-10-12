@@ -149,3 +149,19 @@ hermes plugins enable curriculo
 hermes tools disable curriculo --platform discord
 hermes gateway restart
 ```
+
+Regra no `SOUL.md` para o agente usar a ferramenta (veja abaixo por quê), no fim da lista de limites:
+
+```markdown
+Currículo:
+- Para currículo de uma vaga, use sempre a ferramenta curriculo_pdf (se ela não aparecer, ache com tool_search). Ela gera o PDF; nunca escreva o currículo você mesmo em texto ou Markdown.
+- Quando eu contar algo novo para o currículo, proponha a mudança com curriculo_pdf (acao propor_mestre). Nunca edite o currículo mestre direto.
+```
+
+## O que aprendi no primeiro teste
+
+Na primeira vez, o agente ignorou a ferramenta e escreveu um currículo em Markdown por conta própria. O motivo é o Tool Search do Hermes, que vem ligado: ferramentas de plugin não ficam visíveis para o modelo, só aparecem como uma linha num catálogo, e ele precisa buscar a ferramenta antes de usar. O plugin não tem como pedir para ficar sempre visível.
+
+Desligar o Tool Search resolveria, mas toda mensagem passaria a carregar mais esquemas de ferramentas. Preferi a regra no `SOUL.md`: com ela, o agente buscou a ferramenta e gerou o PDF já na segunda tentativa.
+
+O teste também mostrou o `HERMES_WRITE_SAFE_ROOT` funcionando: o agente tentou gravar o currículo em Markdown fora da pasta de rascunhos e foi bloqueado.

@@ -49,6 +49,8 @@ flowchart LR
 | Busca de vagas num usuário `vagas` separado | Ela guarda a senha de app do Gmail para ler os alertas do LinkedIn. Se ficasse no usuário do agente, um texto malicioso lido por ele poderia levar a senha embora. Assim o agente não consegue nem listar a pasta. |
 | Triagem diária de vagas com o mínimo de ferramentas | Às 9h uma tarefa agendada do agente lê as vagas do dia, compara com o currículo e manda as melhores no Discord, cada uma com o motivo e o risco. Ela roda só com a ferramenta de arquivos, e o arquivo de vagas fica numa pasta de um grupo em que o agente só tem leitura. A descrição das vagas vem de fora, então o prompt manda ignorar instruções escritas dentro delas. |
 | Segredos fora dos comandos | URLs de webhook entram com `read -s` direto num arquivo com permissão 600, sem aparecer na tela nem no histórico. |
+| Escrita de arquivos do agente presa a uma pasta (`HERMES_WRITE_SAFE_ROOT`) | Antes ele conseguia editar o próprio `config.yaml` e até criar plugins, que rodam com as permissões dele. Agora `write_file` e `patch` só escrevem em `~/rascunhos`. Memória e skills têm ferramentas próprias e continuam passando pela minha aprovação. No primeiro teste, o agente tentou gravar um currículo fora da pasta e foi bloqueado. |
+| Currículo por vaga num plugin próprio ([`plugins/curriculo`](plugins/curriculo)) | O agente só escolhe o perfil e a ordem dos tópicos; o texto vem do currículo mestre e o PDF sai de um modelo fixo, então uma instrução escondida numa vaga não consegue colocar experiência falsa no currículo. Mudança no currículo mestre ele só propõe, e quem aplica sou eu com `/mestre`. |
 
 ## Monitoramento
 
@@ -60,7 +62,10 @@ flowchart LR
 
 - [buscador-de-vagas](https://github.com/Joaoxzx/buscador-de-vagas): procura vagas júnior na Gupy e no GitHub três vezes por dia e manda as novas no Discord.
 
+## Currículo por vaga
+
+Peço no Telegram "gera o currículo para a vaga da empresa X" e o PDF chega na conversa, ajustado para a vaga, para eu revisar antes de mandar. Como funciona e por que foi feito assim: [`plugins/curriculo`](plugins/curriculo).
+
 ## Próximos passos
 
-- Limitar onde o agente pode escrever arquivos (`HERMES_WRITE_SAFE_ROOT`), porque hoje ele ainda consegue editar o próprio `config.yaml`.
 - Monitorar o outro projeto (rota `/health`, backup do banco e certificado SSL) quando ele for para produção.
