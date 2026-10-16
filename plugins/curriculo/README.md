@@ -1,6 +1,6 @@
-# Plugin `curriculo`: currículo e mensagem ajustados para uma vaga
+# Plugin `curriculo`: currículo, mensagem e formulário de uma vaga
 
-Peço no Telegram "gera o currículo para a vaga da empresa X" e o PDF chega na conversa, ajustado para a vaga, para eu revisar antes de mandar. A mensagem de candidatura sai pela mesma ferramenta: veja [Mensagem de candidatura](#mensagem-de-candidatura).
+Peço no Telegram "gera o currículo para a vaga da empresa X" e o PDF chega na conversa, ajustado para a vaga, para eu revisar antes de mandar. A mensagem de candidatura, as respostas do formulário da vaga e o texto do perfil da Gupy saem pelo mesmo plugin: veja [Mensagem de candidatura](#mensagem-de-candidatura) e [Formulário da vaga e Gupy](#formulário-da-vaga-e-gupy).
 
 O agente não escreve nenhuma frase do currículo. Ele só escolhe:
 
@@ -31,7 +31,7 @@ sequenceDiagram
     H-->>Eu: o que destacou + MEDIA:/caminho do PDF
 ```
 
-A ferramenta tem seis ações:
+A ferramenta tem sete ações:
 
 | Ação | O que faz |
 | --- | --- |
@@ -40,6 +40,7 @@ A ferramenta tem seis ações:
 | `gerar` | Confere as escolhas, monta o HTML, gera o PDF e devolve o caminho. Tecnologia que não está no mestre, ID que não existe, experiência ou projeto sem tópico voltam como erro, e o agente corrige. Se o PDF passar de 1 página, ele é apagado e o agente tira tópicos. |
 | `mensagem_material` | Devolve os fatos do mestre (kit de candidatura, objetivo, resumos, competências, experiências e projetos), os links permitidos e as regras da mensagem. |
 | `conferir_mensagem` | Confere a mensagem e a nota que o agente escreveu. Só o que passa é gravado em `mensagem.txt`, na mesma pasta do PDF da vaga, e devolvido para ele mostrar. |
+| `conferir_resposta` | Confere a resposta a uma pergunta do formulário da vaga. Só o que passa é gravado em `respostas.txt` e devolvido. |
 | `propor_mestre` | Guarda uma versão nova do currículo mestre como proposta, sem aplicar. Veja abaixo. |
 
 O Hermes manda o arquivo no Telegram quando a resposta do agente tem uma linha `MEDIA:/caminho/do/arquivo.pdf`. O plugin devolve essa linha pronta.
@@ -84,6 +85,33 @@ Um termo da lista passa quando o próprio mestre o tem, então a conferência ac
 
 **A conferência não pega tudo.** Frase genérica que não é fato verificável ("resolvo problemas complexos") passa. Por isso o agente sempre lembra de revisar antes de enviar, e quem envia sou eu.
 
+## Formulário da vaga e Gupy
+
+A Gupy não usa o PDF: ela monta o currículo dela a partir de um formulário. O perfil preenchido fica salvo na conta e é reaproveitado em toda vaga de qualquer empresa que use a Gupy. Por vaga, sobram as perguntas da empresa, como a pretensão salarial e o "aprimorar candidatura".
+
+**Perfil, com o comando `/gupy`, sem IA.** O comando monta o currículo mestre no formato dos campos da Gupy. Cada texto vem num bloco de código, que no Telegram se copia com um toque.
+
+| Comando | O que mostra |
+| --- | --- |
+| `/gupy` | A lista das partes |
+| `/gupy resumo` | Os resumos back-end e full stack, com a contagem de caracteres |
+| `/gupy experiencia <n>` | Empresa, cargo, local, período e a descrição com os tópicos |
+| `/gupy formacao` | Instituição, curso, local e período |
+| `/gupy competencias` | Linguagens e tecnologias numa linha, e os idiomas |
+| `/gupy projetos` | Nome, período e descrição de cada projeto com data |
+
+O perfil vale para todas as vagas, então nada nele passa por um modelo que lê texto de fora: o comando só formata o mestre. Quando o mestre muda, o `/gupy` mostra o texto novo para eu atualizar a Gupy.
+
+**Perguntas da vaga, com o agente e a conferência.** Peço "responde as perguntas da vaga da empresa X" e colo as perguntas do formulário, ou "escreve o aprimorar candidatura da vaga da empresa X". O agente responde uma por uma com o kit de candidatura e passa cada resposta pela ação `conferir_resposta`, que usa a mesma conferência da mensagem com três diferenças:
+
+| Diferença | Por quê |
+| --- | --- |
+| Tecnologia ou termo que o mestre não tem passa quando toda frase que o cita tem "não", "nunca" ou "sem" | A pergunta "você tem experiência com AWS?" pede "ainda não trabalhei com AWS", que é verdade. "Uso AWS no dia a dia. Não tenho certificação." continua barrada, porque a frase que cita a AWS não nega. |
+| Número da pergunta passa | "Disponibilidade para 44 horas semanais?" pode ser respondida com o mesmo número. |
+| Limite do campo informado na chamada | Cada formulário tem o seu; sem limite informado, vale 1500 caracteres. |
+
+A pretensão salarial sai da resposta pronta do kit. Num campo só de número, a resposta é só o número, e 3.000 e 3000 contam como o mesmo valor. Cada resposta aprovada vai para `respostas.txt`, na mesma pasta do PDF e da mensagem da vaga.
+
 ## Atualizar o currículo mestre pela conversa
 
 Quando conto um projeto novo ou um detalhe do sistema, o agente propõe a mudança no currículo mestre, mas não consegue aplicar. Quem aplica sou eu, com o comando `/mestre` no Telegram:
@@ -103,7 +131,8 @@ A diferença é calculada pelo plugin, não escrita pelo agente, então o que ap
 | O agente escolhe IDs; o texto e o visual são fixos | A descrição da vaga vem de fora e pode ter instruções escondidas. Mesmo que o agente seja enganado por ela, o pior resultado é um currículo com fatos verdadeiros numa ordem ruim. Ele não consegue inventar experiência nem colocar HTML no PDF. |
 | Uma ferramenta própria em vez de liberar terminal ou execução de código | O agente continua sem terminal. O plugin faz uma coisa só, com entradas conferidas. |
 | WeasyPrint num processo separado, com o Python do sistema | O processo que gera o PDF não recebe as variáveis de ambiente do gateway (tokens) e recusa qualquer URL no HTML. |
-| Mensagem escrita pelo agente, mas conferida sem IA antes de chegar a mim | A mensagem precisa soar como uma pessoa falando da vaga, então frases fixas não serviam. O risco é ele inventar o que a vaga pede; a conferência barra tecnologia, número, termo e link que o mestre não sustenta, e o envio continua sendo meu. |
+| Mensagem e respostas do formulário escritas pelo agente, mas conferidas sem IA antes de chegar a mim | Precisam soar como uma pessoa falando da vaga, então frases fixas não serviam. O risco é ele inventar o que a vaga pede; a conferência barra tecnologia, número, termo e link que o mestre não sustenta, e o envio continua sendo meu. |
+| Perfil da Gupy por comando, sem IA | O perfil vale para todas as vagas da Gupy. Um texto montado pelo agente depois de ler uma vaga de fora poderia levar algo falso para todas as candidaturas seguintes. |
 | Mudança no currículo mestre só com `/mestre aplicar` | O agente lê vagas de fora. Se ele pudesse editar o mestre direto, uma instrução escondida numa vaga poderia colocar uma experiência falsa lá, e ela iria para todos os currículos seguintes. Comandos com `/` só chegam de mensagens minhas, então o agente não consegue aprovar sozinho. |
 | Código do plugin com dono `root` | O usuário do agente lê e executa o plugin, mas não consegue alterar o código. |
 | Ferramenta ligada só no Telegram | É onde peço o currículo. O Discord só recebe avisos. |
@@ -187,7 +216,14 @@ python3 ~/.hermes/plugins/curriculo/teste.py mensagem
 python3 ~/.hermes/plugins/curriculo/teste.py conferir "Tenho 2 anos de experiência com Java." "Olá!"
 ```
 
-O último deve voltar com erro apontando o número, o tempo de experiência e o Java.
+O último deve voltar com erro apontando o número, o tempo de experiência e o Java. Para as respostas e o perfil da Gupy:
+
+```bash
+python3 ~/.hermes/plugins/curriculo/teste.py resposta "Qual sua pretensão salarial?" "4500"
+python3 ~/.hermes/plugins/curriculo/teste.py gupy experiencia 1
+```
+
+A resposta deve voltar com erro no número 4500, que não está no mestre.
 
 Ligar o plugin só no Telegram e reiniciar o gateway:
 
@@ -204,6 +240,7 @@ Currículo:
 - Para currículo de uma vaga, use sempre a ferramenta curriculo_pdf (se ela não aparecer, ache com tool_search). Ela gera o PDF; nunca escreva o currículo você mesmo em texto ou Markdown.
 - Quando eu contar algo novo para o currículo, proponha a mudança com curriculo_pdf (acao propor_mestre). Nunca edite o currículo mestre direto.
 - Para a mensagem de candidatura de uma vaga, use curriculo_pdf (acao mensagem_material e depois conferir_mensagem) e me mostre só o que passou na conferência.
+- Para perguntas do formulário de uma vaga (pretensão salarial, aprimorar candidatura, sobre mim), use curriculo_pdf (acao mensagem_material e depois conferir_resposta, uma por pergunta) e me mostre só o que passou na conferência.
 ```
 
 Depois de mudar o plugin ou o `SOUL.md`, mande `/new` no tópico do Telegram antes de testar. Veja abaixo por quê.

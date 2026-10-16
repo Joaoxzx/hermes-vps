@@ -1,5 +1,5 @@
 name: curriculo
-version: 1.1.0
-description: Currículo em PDF e mensagem de candidatura para uma vaga, só com os fatos do currículo mestre
+version: 1.2.0
+description: Currículo em PDF, mensagem de candidatura, respostas de formulário e perfil da Gupy, só com os fatos do currículo mestre
 provides_tools:
   - curriculo_pdf

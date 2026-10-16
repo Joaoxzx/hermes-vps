@@ -50,7 +50,7 @@ flowchart LR
 | Triagem diária de vagas com o mínimo de ferramentas | Às 9h uma tarefa agendada do agente lê as vagas do dia, compara com o currículo e manda as melhores no Discord, cada uma com o motivo e o risco. Ela roda só com a ferramenta de arquivos, e o arquivo de vagas fica numa pasta de um grupo em que o agente só tem leitura. A descrição das vagas vem de fora, então o prompt manda ignorar instruções escritas dentro delas. |
 | Segredos fora dos comandos | URLs de webhook entram com `read -s` direto num arquivo com permissão 600, sem aparecer na tela nem no histórico. |
 | Escrita de arquivos do agente presa a uma pasta (`HERMES_WRITE_SAFE_ROOT`) | Antes ele conseguia editar o próprio `config.yaml` e até criar plugins, que rodam com as permissões dele. Agora `write_file` e `patch` só escrevem em `~/rascunhos`. Memória e skills têm ferramentas próprias e continuam passando pela minha aprovação. No primeiro teste, o agente tentou gravar um currículo fora da pasta e foi bloqueado. |
-| Currículo por vaga num plugin próprio ([`plugins/curriculo`](plugins/curriculo)) | O agente só escolhe o perfil e a ordem dos tópicos; o texto vem do currículo mestre e o PDF sai de um modelo fixo, então uma instrução escondida numa vaga não consegue colocar experiência falsa no currículo. Mudança no currículo mestre ele só propõe, e quem aplica sou eu com `/mestre`. A mensagem de candidatura ele escreve, mas ela só chega a mim depois de uma conferência sem IA que barra tecnologia, número, link e termo que o currículo mestre não sustenta. |
+| Currículo por vaga num plugin próprio ([`plugins/curriculo`](plugins/curriculo)) | O agente só escolhe o perfil e a ordem dos tópicos; o texto vem do currículo mestre e o PDF sai de um modelo fixo, então uma instrução escondida numa vaga não consegue colocar experiência falsa no currículo. Mudança no currículo mestre ele só propõe, e quem aplica sou eu com `/mestre`. A mensagem de candidatura e as respostas do formulário da vaga ele escreve, mas elas só chegam a mim depois de uma conferência sem IA que barra tecnologia, número, link e termo que o currículo mestre não sustenta. O perfil da Gupy sai de um comando sem IA. |
 
 ## Monitoramento
 
@@ -64,7 +64,7 @@ flowchart LR
 
 ## Currículo por vaga
 
-Peço no Telegram "gera o currículo para a vaga da empresa X" e o PDF chega na conversa, ajustado para a vaga, para eu revisar antes de mandar. Com "gera a mensagem para a vaga da empresa X", chegam uma mensagem curta para e-mail ou InMail e uma nota para o convite do LinkedIn. Como funciona e por que foi feito assim: [`plugins/curriculo`](plugins/curriculo).
+Peço no Telegram "gera o currículo para a vaga da empresa X" e o PDF chega na conversa, ajustado para a vaga, para eu revisar antes de mandar. Com "gera a mensagem para a vaga da empresa X", chegam uma mensagem curta para e-mail ou InMail e uma nota para o convite do LinkedIn. Para a Gupy, que não usa o PDF, o comando `/gupy` mostra o currículo mestre no formato dos campos do perfil, e o agente responde as perguntas do formulário da vaga, como a pretensão salarial e o "aprimorar candidatura". Como funciona e por que foi feito assim: [`plugins/curriculo`](plugins/curriculo).
 
 ## Próximos passos
 

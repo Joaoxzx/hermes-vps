@@ -4,6 +4,8 @@
     python3 teste.py gerar [fullstack]           gera um PDF de teste em ~/curriculos
     python3 teste.py mensagem                    mostra o material da mensagem de candidatura
     python3 teste.py conferir "<mensagem>" "<nota>"   passa um texto pela conferência
+    python3 teste.py resposta "<pergunta>" "<resposta>"   passa uma resposta de formulário pela conferência
+    python3 teste.py gupy [resumo | experiencia 1 | ...]  mostra o que o comando /gupy responde
 """
 
 import json
@@ -16,8 +18,18 @@ import nucleo  # noqa: E402
 
 def main():
     acao = sys.argv[1] if len(sys.argv) > 1 else "opcoes"
+    if acao == "gupy":
+        try:
+            print(nucleo.comando_gupy(" ".join(sys.argv[2:])))
+        except nucleo.ErroCurriculo as e:
+            print(e)
+        return
     try:
-        if acao == "mensagem":
+        if acao == "resposta":
+            resultado = nucleo.conferir_resposta({
+                "vaga": "teste", "pergunta": sys.argv[2] if len(sys.argv) > 2 else "",
+                "resposta": sys.argv[3] if len(sys.argv) > 3 else ""})
+        elif acao == "mensagem":
             resultado = nucleo.mensagem_material()
         elif acao == "conferir":
             resultado = nucleo.conferir_mensagem({
