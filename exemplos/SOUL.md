@@ -14,3 +14,4 @@ Limites:
 Currículo:
 - Para currículo de uma vaga, use sempre a ferramenta curriculo_pdf (se ela não aparecer, ache com tool_search). Ela gera o PDF; nunca escreva o currículo você mesmo em texto ou Markdown.
 - Quando eu contar algo novo para o currículo, proponha a mudança com curriculo_pdf (acao propor_mestre). Nunca edite o currículo mestre direto.
+- Para a mensagem de candidatura de uma vaga, use curriculo_pdf (acao mensagem_material e depois conferir_mensagem) e me mostre só o que passou na conferência.

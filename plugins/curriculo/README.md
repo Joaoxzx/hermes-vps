@@ -1,6 +1,6 @@
-# Plugin `curriculo`: currículo ajustado para uma vaga
+# Plugin `curriculo`: currículo e mensagem ajustados para uma vaga
 
-Peço no Telegram "gera o currículo para a vaga da empresa X" e o PDF chega na conversa, ajustado para a vaga, para eu revisar antes de mandar.
+Peço no Telegram "gera o currículo para a vaga da empresa X" e o PDF chega na conversa, ajustado para a vaga, para eu revisar antes de mandar. A mensagem de candidatura sai pela mesma ferramenta: veja [Mensagem de candidatura](#mensagem-de-candidatura).
 
 O agente não escreve nenhuma frase do currículo. Ele só escolhe:
 
@@ -31,16 +31,58 @@ sequenceDiagram
     H-->>Eu: o que destacou + MEDIA:/caminho do PDF
 ```
 
-A ferramenta tem quatro ações:
+A ferramenta tem seis ações:
 
 | Ação | O que faz |
 | --- | --- |
 | `buscar_vaga` | Procura a vaga pelo nome da empresa ou do cargo no arquivo de vagas dos últimos 3 dias, que o [buscador de vagas](https://github.com/Joaoxzx/buscador-de-vagas) grava numa pasta em que o agente só tem leitura. |
 | `opcoes` | Lê o currículo mestre e devolve os dois resumos, os tópicos com ID, as tecnologias e as regras de escolha. |
 | `gerar` | Confere as escolhas, monta o HTML, gera o PDF e devolve o caminho. Tecnologia que não está no mestre, ID que não existe, experiência ou projeto sem tópico voltam como erro, e o agente corrige. Se o PDF passar de 1 página, ele é apagado e o agente tira tópicos. |
+| `mensagem_material` | Devolve os fatos do mestre (kit de candidatura, objetivo, resumos, competências, experiências e projetos), os links permitidos e as regras da mensagem. |
+| `conferir_mensagem` | Confere a mensagem e a nota que o agente escreveu. Só o que passa é gravado em `mensagem.txt`, na mesma pasta do PDF da vaga, e devolvido para ele mostrar. |
 | `propor_mestre` | Guarda uma versão nova do currículo mestre como proposta, sem aplicar. Veja abaixo. |
 
 O Hermes manda o arquivo no Telegram quando a resposta do agente tem uma linha `MEDIA:/caminho/do/arquivo.pdf`. O plugin devolve essa linha pronta.
+
+## Mensagem de candidatura
+
+Peço no Telegram "gera a mensagem para a vaga da empresa X" (ou "o currículo e a mensagem") e recebo duas versões para revisar e mandar eu mesmo:
+
+| Versão | Limite | Onde uso |
+| --- | --- | --- |
+| Mensagem | 600 caracteres | E-mail, InMail ou campo de apresentação da candidatura |
+| Nota | 200 caracteres | Convite de conexão do LinkedIn, que tem esse limite sem Premium |
+
+Aqui, ao contrário do currículo, **o agente escreve o texto**. Uma mensagem montada com frases fixas sairia quase igual para toda vaga, e o recrutador percebe. Em troca, nada que ele escreve chega a mim sem passar por uma conferência sem IA:
+
+```mermaid
+sequenceDiagram
+    participant Eu
+    participant H as Hermes (Telegram)
+    participant P as curriculo_pdf
+    Eu->>H: gera a mensagem para a vaga da empresa X
+    H->>P: buscar_vaga("empresa X")
+    H->>P: mensagem_material
+    P-->>H: fatos do mestre, links permitidos e regras
+    H->>H: escreve a mensagem e a nota
+    H->>P: conferir_mensagem(vaga, mensagem, nota)
+    P-->>H: erro com o que corrigir, ou o texto aprovado
+    H-->>Eu: as duas versões e o lembrete de revisar
+```
+
+O que a conferência barra, comparando com o currículo mestre:
+
+| Barra | Exemplo | Por quê |
+| --- | --- | --- |
+| Tecnologia que não está no mestre | "Java", "PostgreSQL", "React Native" | É a invenção mais provável: dizer que tenho o que a vaga pede. |
+| Número que não está no mestre | "2 anos de experiência" | Tempo e resultado inventados. Número colado em nome de empresa, como 99Pay, passa. |
+| Termo que o mestre não sustenta | "em produção", "sênior", "formado", "liderei", "fluente" | O sistema da barbearia está em implantação, sou júnior, a faculdade não acabou e o inglês é de leitura. |
+| E-mail ou link de fora | `evil.com`, o portfólio em construção | Só passam o LinkedIn e o GitHub do contato. |
+| Tamanho | 601 caracteres | Acima do limite de cada versão. |
+
+Um termo da lista passa quando o próprio mestre o tem, então a conferência acompanha o mestre: quando o sistema da barbearia for ao ar e o mestre disser "em produção", a mensagem também pode dizer. Termo que aparece no nome da vaga também passa (a Senior Sistemas é uma empresa).
+
+**A conferência não pega tudo.** Frase genérica que não é fato verificável ("resolvo problemas complexos") passa. Por isso o agente sempre lembra de revisar antes de enviar, e quem envia sou eu.
 
 ## Atualizar o currículo mestre pela conversa
 
@@ -61,6 +103,7 @@ A diferença é calculada pelo plugin, não escrita pelo agente, então o que ap
 | O agente escolhe IDs; o texto e o visual são fixos | A descrição da vaga vem de fora e pode ter instruções escondidas. Mesmo que o agente seja enganado por ela, o pior resultado é um currículo com fatos verdadeiros numa ordem ruim. Ele não consegue inventar experiência nem colocar HTML no PDF. |
 | Uma ferramenta própria em vez de liberar terminal ou execução de código | O agente continua sem terminal. O plugin faz uma coisa só, com entradas conferidas. |
 | WeasyPrint num processo separado, com o Python do sistema | O processo que gera o PDF não recebe as variáveis de ambiente do gateway (tokens) e recusa qualquer URL no HTML. |
+| Mensagem escrita pelo agente, mas conferida sem IA antes de chegar a mim | A mensagem precisa soar como uma pessoa falando da vaga, então frases fixas não serviam. O risco é ele inventar o que a vaga pede; a conferência barra tecnologia, número, termo e link que o mestre não sustenta, e o envio continua sendo meu. |
 | Mudança no currículo mestre só com `/mestre aplicar` | O agente lê vagas de fora. Se ele pudesse editar o mestre direto, uma instrução escondida numa vaga poderia colocar uma experiência falsa lá, e ela iria para todos os currículos seguintes. Comandos com `/` só chegam de mensagens minhas, então o agente não consegue aprovar sozinho. |
 | Código do plugin com dono `root` | O usuário do agente lê e executa o plugin, mas não consegue alterar o código. |
 | Ferramenta ligada só no Telegram | É onde peço o currículo. O Discord só recebe avisos. |
@@ -140,7 +183,11 @@ Teste sem IA, com o usuário do agente:
 ```bash
 python3 ~/.hermes/plugins/curriculo/teste.py opcoes
 python3 ~/.hermes/plugins/curriculo/teste.py gerar
+python3 ~/.hermes/plugins/curriculo/teste.py mensagem
+python3 ~/.hermes/plugins/curriculo/teste.py conferir "Tenho 2 anos de experiência com Java." "Olá!"
 ```
+
+O último deve voltar com erro apontando o número, o tempo de experiência e o Java.
 
 Ligar o plugin só no Telegram e reiniciar o gateway:
 
@@ -156,6 +203,7 @@ Regra no `SOUL.md` para o agente usar a ferramenta (veja abaixo por quê), no fi
 Currículo:
 - Para currículo de uma vaga, use sempre a ferramenta curriculo_pdf (se ela não aparecer, ache com tool_search). Ela gera o PDF; nunca escreva o currículo você mesmo em texto ou Markdown.
 - Quando eu contar algo novo para o currículo, proponha a mudança com curriculo_pdf (acao propor_mestre). Nunca edite o currículo mestre direto.
+- Para a mensagem de candidatura de uma vaga, use curriculo_pdf (acao mensagem_material e depois conferir_mensagem) e me mostre só o que passou na conferência.
 ```
 
 ## O que aprendi no primeiro teste
