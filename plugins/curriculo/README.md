@@ -206,6 +206,8 @@ Currículo:
 - Para a mensagem de candidatura de uma vaga, use curriculo_pdf (acao mensagem_material e depois conferir_mensagem) e me mostre só o que passou na conferência.
 ```
 
+Depois de mudar o plugin ou o `SOUL.md`, mande `/new` no tópico do Telegram antes de testar. Veja abaixo por quê.
+
 ## O que aprendi no primeiro teste
 
 Na primeira vez, o agente ignorou a ferramenta e escreveu um currículo em Markdown por conta própria. O motivo é o Tool Search do Hermes, que vem ligado: ferramentas de plugin não ficam visíveis para o modelo, só aparecem como uma linha num catálogo, e ele precisa buscar a ferramenta antes de usar. O plugin não tem como pedir para ficar sempre visível.
@@ -213,3 +215,9 @@ Na primeira vez, o agente ignorou a ferramenta e escreveu um currículo em Markd
 Desligar o Tool Search resolveria, mas toda mensagem passaria a carregar mais esquemas de ferramentas. Preferi a regra no `SOUL.md`: com ela, o agente buscou a ferramenta e gerou o PDF já na segunda tentativa.
 
 O teste também mostrou o `HERMES_WRITE_SAFE_ROOT` funcionando: o agente tentou gravar o currículo em Markdown fora da pasta de rascunhos e foi bloqueado.
+
+## O que aprendi no teste da mensagem
+
+Depois de instalar a mensagem e reiniciar o gateway, o primeiro pedido veio sem a nota e sem o lembrete, e nenhum `mensagem.txt` foi gravado: o agente escreveu por conta própria, sem a conferência. A conversa no tópico era de antes da atualização, e o Hermes reaproveita as instruções e a lista de ferramentas do começo da conversa. Depois de um `/new`, o mesmo pedido passou pela conferência e o `mensagem.txt` saiu igual ao texto do Telegram.
+
+O `mensagem.txt` serve de prova: ele só existe quando o texto passou pela conferência.
