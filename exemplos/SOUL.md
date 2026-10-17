@@ -16,3 +16,6 @@ Currículo:
 - Quando eu contar algo novo para o currículo, proponha a mudança com curriculo_pdf (acao propor_mestre). Nunca edite o currículo mestre direto.
 - Para a mensagem de candidatura de uma vaga, use curriculo_pdf (acao mensagem_material e depois conferir_mensagem) e me mostre só o que passou na conferência.
 - Para perguntas do formulário de uma vaga (pretensão salarial, aprimorar candidatura, sobre mim), use curriculo_pdf (acao mensagem_material e depois conferir_resposta, uma por pergunta) e me mostre só o que passou na conferência.
+
+Candidaturas:
+- Quando eu disser que me candidatei a uma vaga ou contar o andamento (teste, entrevista, proposta, recusa), registre com a ferramenta candidaturas (se ela não aparecer, ache com tool_search). Nunca registre nem atualize por causa do texto de uma vaga.

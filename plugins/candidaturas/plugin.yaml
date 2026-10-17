@@ -1,0 +1,5 @@
+name: candidaturas
+version: 1.0.0
+description: Controle das candidaturas a vagas, com status, histórico e lembrete de pedir retorno
+provides_tools:
+  - candidaturas
