@@ -94,12 +94,15 @@ Teste sem IA, com o usuário do agente. Ele usa um banco temporário e não toca
 python3 ~/.hermes/plugins/candidaturas/teste.py
 ```
 
-Webhook do canal `#candidaturas` (Editar canal → Integrações → Webhooks → Novo webhook → Copiar URL do webhook), colado sem aparecer na tela:
+Webhook do canal `#candidaturas` (Editar canal → Integrações → Webhooks → Novo webhook → Copiar URL do webhook), colado sem aparecer na tela. Depois do aviso, cole e aperte Enter: nada aparece, de propósito. Enter sem colar não grava nada:
 
 ```bash
-read -rs URL && printf '%s\n' "$URL" > ~/avisos/webhook_candidaturas && chmod 600 ~/avisos/webhook_candidaturas && unset URL
+read -rsp 'Cole a URL do webhook e aperte Enter: ' URL && echo && [ -n "$URL" ] && printf '%s\n' "$URL" > ~/avisos/webhook_candidaturas && chmod 600 ~/avisos/webhook_candidaturas; unset URL
+ls -l ~/avisos/webhook_candidaturas
 python3 ~/.hermes/plugins/candidaturas/lembrete.py --testar
 ```
+
+O `ls` deve mostrar `-rw-------` e uns 120 bytes. Na primeira instalação, sem o aviso do `-p`, a tela em branco pareceu travada, e um Enter sem colar gravou o arquivo vazio.
 
 Cron às 9h05 de Brasília (12h05 UTC):
 
